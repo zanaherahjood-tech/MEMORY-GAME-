@@ -30,7 +30,7 @@ def play_sound(sound_url):
 exciting_sound = "https://www.soundjay.com/buttons/sounds/button-16.mp3"
 tense_sound = "https://www.soundjay.com/misc/sounds/bell-ringing-01.mp3"
 
-# بدء اللعبة
+# بدء الجلسة
 if "level" not in st.session_state:
     st.session_state.level = 1
     st.session_state.attempts = 5
@@ -38,7 +38,11 @@ if "level" not in st.session_state:
     st.session_state.sequence = ""
     st.session_state.user_input = ""
 
-# إعادة تعيين اللعبة
+# دالة توليد تسلسل
+def generate_sequence(length):
+    return ''.join(random.choices(string.ascii_uppercase, k=length))
+
+# دالة إعادة تعيين اللعبة
 def reset_game():
     st.session_state.level = 1
     st.session_state.attempts = 5
@@ -46,11 +50,9 @@ def reset_game():
     st.session_state.sequence = ""
     st.session_state.user_input = ""
 
-# توليد تسلسل
-def generate_sequence(length):
-    return ''.join(random.choices(string.ascii_uppercase, k=length))
-
-# ====== شاشة البدء ======
+# ================================
+# 🎮 مرحلة بدء اللعبة
+# ================================
 if st.session_state.stage == "start":
     st.title("🧠 لعبة اختبار الذاكرة")
     st.markdown("احفظ تسلسل الحروف الذي يظهر، ثم اكتبه بالترتيب.\n\n لديك 5 محاولات فقط. كل مستوى يصبح أصعب! 🚀")
@@ -58,10 +60,11 @@ if st.session_state.stage == "start":
         st.session_state.stage = "show"
         st.experimental_rerun()
 
-# ====== عرض التسلسل مع عداد ======
+# ================================
+# 🎬 مرحلة عرض التسلسل
+# ================================
 elif st.session_state.stage == "show":
     st.subheader(f"المستوى {st.session_state.level} | المحاولات المتبقية: {st.session_state.attempts}")
-
     seq_length = st.session_state.level + 2
     st.session_state.sequence = generate_sequence(seq_length)
 
@@ -72,18 +75,21 @@ elif st.session_state.stage == "show":
         with placeholder.container():
             st.markdown(f"## {' '.join(st.session_state.sequence)}")
             st.markdown(f"⏳ <b>{i}</b> ثانية", unsafe_allow_html=True)
-        play_sound(exciting_sound)
+            play_sound(exciting_sound)
         time.sleep(1)
-    placeholder.empty()
 
+    placeholder.empty()
     st.session_state.stage = "input"
     st.experimental_rerun()
 
-# ====== مرحلة الإدخال ======
+# ================================
+# ⌨️ مرحلة الإدخال
+# ================================
 elif st.session_state.stage == "input":
     st.subheader(f"✍️ اكتب التسلسل الذي رأيته (بدون فراغات):")
     play_sound(tense_sound)
-    st.text_input("تسلسل الحروف:", key="user_input")
+
+    st.session_state.user_input = st.text_input("تسلسل الحروف:", value=st.session_state.user_input)
 
     if st.button("تحقق ✅"):
         correct = st.session_state.user_input.upper().replace(" ", "")
@@ -102,7 +108,9 @@ elif st.session_state.stage == "input":
         time.sleep(2)
         st.experimental_rerun()
 
-# ====== نهاية اللعبة ======
+# ================================
+# ☠️ نهاية اللعبة
+# ================================
 elif st.session_state.stage == "end":
     st.markdown(f"## 💥 انتهت اللعبة!")
     st.markdown(f"وصلت إلى المستوى: **{st.session_state.level}**")
